@@ -44,7 +44,7 @@ class CLIP_Layer(nn.Module):
 
 
 
-class CLIP_TextEncoder(nn.Module):
+class CLIP(nn.Module):
     def __init__(self):
         super().__init__()
         self.embedding = CLIP_Embedding(49408, 768, 77) # vocab_size, d_model, max_length

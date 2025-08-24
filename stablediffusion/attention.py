@@ -80,7 +80,7 @@ class CrossAttention(nn.Module):
         k = k.view(interm_shape).transpose(1, 2)
         v = v.view(interm_shape).transpose(1, 2)
         
-        weight = q @ k.tranpose(-1, -2)
+        weight = q @ k.transpose(-1, -2)
         weight /= math.sqrt(self.d_head)
         weight = F.softmax(weight, dim = -1)
 

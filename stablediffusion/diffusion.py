@@ -122,11 +122,11 @@ class Upsample(nn.Module):
 class Unet_OutputLayer(nn.Module):
     def __init__(self, in_channels: int, out_channels: int):
         super().__init__()
-        self.group_norm = nn.GroupNorm(32, in_channels)
+        self.groupnorm = nn.GroupNorm(32, in_channels)
         self.conv = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1)
         
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = self.group_norm(x)
+        x = self.groupnorm(x)
         x = F.silu(x)
         x = self.conv(x)
         return x
@@ -147,7 +147,7 @@ class SwitchSequential(nn.Sequential):
 class Unet(nn.Module):
     def __init__(self):
         super().__init__()
-        self.encoder = nn.ModuleList([
+        self.encoders = nn.ModuleList([
             SwitchSequential(nn.Conv2d(4, 320, kernel_size=3, padding=1)),
             SwitchSequential(Unet_ResidualBlock(320, 320), Unet_AttentionBlock(8, 40)),
             SwitchSequential(Unet_ResidualBlock(320, 320), Unet_AttentionBlock(8, 40)),
@@ -168,7 +168,7 @@ class Unet(nn.Module):
             Unet_ResidualBlock(1280, 1280),
         )
 
-        self.decoder = nn.ModuleList([
+        self.decoders = nn.ModuleList([
             SwitchSequential(Unet_ResidualBlock(2560, 1280)),
             SwitchSequential(Unet_ResidualBlock(2560, 1280)),
             SwitchSequential(Unet_ResidualBlock(2560, 1280), Upsample(1280)),
@@ -185,13 +185,13 @@ class Unet(nn.Module):
     
     def forward(self, x, context, time):
         skip_connections = []
-        for layer in self.encoder:
+        for layer in self.encoders:
             x = layer(x, context, time)
             skip_connections.append(x)
 
         x = self.bottleneck(x, context, time)
 
-        for layer in self.decoder   :
+        for layer in self.decoders:
             x = torch.cat((x, skip_connections.pop()), dim=1) 
             x = layer(x, context, time)
         
