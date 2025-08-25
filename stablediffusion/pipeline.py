@@ -1,36 +1,11 @@
 import torch
 import numpy as np
 from tqdm import tqdm
-from ddpm import DDPMSampler
+from stablediffusion.ddpm import DDPMSampler
+from stablediffusion.utils import get_timestep_embedding, preprocess_input_image, postprocess_output_image
 
 H, W = 512, 512
 LATENT_H, LATENT_W = H // 8, W // 8
-
-
-def rescale(x, in_range, out_range, clamp = False):
-    old_min, old_max = in_range
-    new_min, new_max = out_range
-
-    x = (x - old_min) / (old_max - old_min)
-    x = x * (new_max - new_min) + new_min
-
-    if clamp:
-        x = x.clamp(new_min, new_max)
-    
-    return x
-
-
-def get_timestep_embedding(timestep, freqs = None):
-    if freqs is None:
-        freqs = torch.pow(10000, -torch.arange(0, 160, dtype=torch.float32) / 160)
-
-    t = torch.tensor([timestep], dtype=torch.float32).unsqueeze(1)   # shape (1,1)
-    f = freqs.unsqueeze(0)                                          # shape (1,160)
-    x = t * f                                                      # shape (1,160)
-
-    emb = torch.cat([torch.cos(x), torch.sin(x)], dim=1)            # shape (1,320)
-
-    return emb
 
 
 def generate(prompt: str, 
@@ -102,9 +77,7 @@ def generate(prompt: str,
             input_image_tensor = input_image.resize((W, H))
             input_image_tensor = torch.tensor(np.array(input_image_tensor), dtype=torch.float32, device=device)
 
-            input_image_tensor = rescale(input_image_tensor, (0, 255), (-1, 1))
-            input_image_tensor = input_image_tensor.unsqueeze(0)
-            input_image_tensor = input_image_tensor.permute(0, 3, 1, 2)
+            input_image_tensor = preprocess_input_image(input_image_tensor)
 
             encoder_noise = torch.randn(latent_shape, device=device, generator=generator)
             latents = encoder(input_image_tensor, encoder_noise)
@@ -146,9 +119,7 @@ def generate(prompt: str,
         images = decoder(latents)
         to_idle_device(decoder)
 
-        images = rescale(images, (-1, 1), (0, 255), clamp = True)
-        images = images.permute(0, 2, 3, 1)
-        images = images.to(torch.uint8).cpu().numpy()
+        images = postprocess_output_image(images)
 
 
         return images[0]

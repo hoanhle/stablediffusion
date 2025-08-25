@@ -1,8 +1,8 @@
-from clip import CLIP
-from encoder import VAE_Encoder
-from decoder import VAE_Decoder
-from diffusion import Diffusion
-import model_converter
+from stablediffusion.clip import CLIP
+from stablediffusion.encoder import VAE_Encoder
+from stablediffusion.decoder import VAE_Decoder
+from stablediffusion.diffusion import Diffusion
+import stablediffusion.model_converter as model_converter
 
 
 def preload_models_from_stardard_weights(ckpt_path: str, device: str):

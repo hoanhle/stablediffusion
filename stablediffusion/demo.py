@@ -1,8 +1,7 @@
-import model_loader
-import pipeline
+import stablediffusion.model_loader as model_loader
+import stablediffusion.pipeline as pipeline
 from PIL import Image
 from transformers import CLIPTokenizer
-import pipeline
 
 DEVICE = "cpu"
 

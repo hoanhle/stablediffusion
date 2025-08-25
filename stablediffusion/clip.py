@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 from torch.nn import functional as F
-from attention import SelfAttention
+from stablediffusion.attention import SelfAttention
 
 
 class CLIP_Embedding(nn.Module):
@@ -49,7 +49,7 @@ class CLIP(nn.Module):
         super().__init__()
         self.embedding = CLIP_Embedding(49408, 768, 77) # vocab_size, d_model, max_length
         self.layers = nn.ModuleList(
-            [CLIP_Layer(12, 768) for i in range(12)]
+            [CLIP_Layer(12, 768) for _ in range(12)]
         )
 
         self.layernorm = nn.LayerNorm(768)
